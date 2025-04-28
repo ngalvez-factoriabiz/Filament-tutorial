@@ -17,7 +17,10 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use PhpParser\Node\Stmt\Return_;
 
 class EmployeeResource extends Resource
 {
@@ -26,6 +29,50 @@ class EmployeeResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
     protected static ?string $navigationGroup = 'Employee Management';
+
+    protected static ?string $recordTitleAttribute = 'first_name';
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->first_name . ' ' . $record->last_name;
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return [
+            'first_name',
+            'middle_name',
+            'last_name',
+            'country.name',
+            'state.name',
+            'city.name',
+        ];
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Country' => $record->country->name,
+            'State' => $record->state->name,
+            'City' => $record->city->name,
+            'Department' => $record->department->name,
+        ];
+    }
+
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        return parent::getGlobalSearchEloquentQuery()->with(['country']);
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'info';
+    }
 
     public static function form(Form $form): Form
     {
